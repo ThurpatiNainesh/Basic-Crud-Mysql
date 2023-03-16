@@ -7,7 +7,7 @@ app.use(express.urlencoded({extended:true}));
 const db = mysql.createConnection({
   host: "localhost",
   user:"root",
-  password:"nain@70113",
+  password:"nain@7013446013",
   database:"test",
   insecureAuth : true
 })
@@ -19,14 +19,24 @@ db.connect((err)=>{
   }
 })
 
+const isValid = function (value) {
+  if (typeof value === "undefined" || value === null) return false;
+  if (typeof value === "string" && value.trim().length === 0) return false;
+  return true;
+}
+
 app.get("/name",(req,res)=>{
   let {name}=req.query
+
+  if (!isValid(name)) {
+    return res.status(400).send({ status: false, message: "name is required" })
+    } 
   let sql= `SELECT * FROM books WHERE name = ${name} `
   db.execute(sql,function(err,result){
     if(err){
-       return res.send("duplicate entry of name or id not allowed")
+       return res.send("BOOK name does not exist in mysqlDB")
     }else{
-      return res.send("user exist")
+      return res.status(200).json(result)
  }
 })
 })
@@ -34,21 +44,27 @@ app.get("/sort",(req,res)=>{
    let sql= "SELECT * FROM books ORDER BY name ASC"
    db.execute(sql,function(err,result){
      if(err){
-        console.log(err)
+      return res.send("Something went wrong!!")
      }else{
-       res.status(200).json(result)
+       return res.status(200).json(result)
   }
 })
 })
 
 app.delete("/delete",(req,res)=>{
   let {name}=req.query
+
+  if (!isValid(name)) {
+    return res.status(400).send({ status: false, message: "name is required" })
+    } 
+
   let sql= `DELETE FROM books WHERE name = ${name}`
+
   db.execute(sql,function(err,result){
     if(err){
       return res.status(400).send("BOOK name does not exist in mysqlDB")
     }else{
-      res.status(200).json(result)
+      return res.status(200).json(result)
  }
 })
 })
@@ -57,7 +73,7 @@ app.post("/post",(req,res)=>{
 
 if(Object.keys(data) == 0) return res.status(400).send({ status: false, message: "please enter details" })
  
-     db.query('INSERT INTO book SET ?',data,(err,result)=>{
+     db.query('INSERT INTO books SET ?',data,(err,result)=>{
            if(err){
              return res.status(400).send("ID and name must be unique")
            }else{
